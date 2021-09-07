@@ -49,7 +49,11 @@ func loadUI(peers map[string][]string, connectionHandler func(*widget.Button) *w
 func updatePeers(peers map[string][]string, countries []string) {
 	// create conf file if not exists
 	if _, err := os.Stat("/tmp/ygg.conf"); err != nil {
-		os.Create("/tmp/ygg.conf")
+		f, err := os.Create("/tmp/ygg.conf")
+		if err != nil {
+			fmt.Println(err)
+		}
+		f.Close()
 	}
 
 	// Generate new configs
@@ -62,15 +66,17 @@ func updatePeers(peers map[string][]string, countries []string) {
 	configs := string(output)
 	configs = strings.Replace(configs, "Peers: []", "Peers: "+yggdrasil.ConcatPeers(peers, countries), 1)
 
-	// // Save new configs
-	f, err := os.Create("/tmp/ygg.conf")
+	// Save new configs
+	f, err := os.OpenFile("/tmp/ygg.conf", os.O_WRONLY, os.ModeAppend)
 	if err != nil {
-		return
+		fmt.Println(err)
 	}
 	defer f.Close()
 
-	io.WriteString(f, configs)
-
+	_, err = io.WriteString(f, configs)
+	if err != nil {
+		fmt.Println("here", err)
+	}
 }
 
 func removeCountry(countries []string, country string) []string {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -17,8 +16,9 @@ import (
 	"github.com/MohamedElmdary/yggdrasil-connector/src/yggdrasil"
 )
 
-func loadUI(peers map[string][]string, connectionHandler func(*widget.Button) *widget.Button, onSelectPeer func(bool, string)) fyne.CanvasObject {
+func loadUI(peers map[string][]string, connectionHandler func(*widget.Button, []*widget.Check) *widget.Button, onSelectPeer func(bool, string)) fyne.CanvasObject {
 	items := []fyne.CanvasObject{}
+	tempItems := []*widget.Check{}
 
 	for country, values := range peers {
 		if len(values) == 0 {
@@ -29,6 +29,7 @@ func loadUI(peers map[string][]string, connectionHandler func(*widget.Button) *w
 			onSelectPeer(checked, c)
 		})
 		items = append(items, checkbox)
+		tempItems = append(tempItems, checkbox)
 	}
 
 	countriesList := container.NewVScroll(
@@ -38,7 +39,7 @@ func loadUI(peers map[string][]string, connectionHandler func(*widget.Button) *w
 		),
 	)
 	countriesList.SetMinSize(fyne.NewSize(1, 600))
-	btnConnect := connectionHandler(widget.NewButton("Connect", func() {}))
+	btnConnect := connectionHandler(widget.NewButton("Connect", func() {}), tempItems)
 	btnConnect.Resize(fyne.NewSize(1, 100))
 	layout1 := layout.NewVBoxLayout()
 	contApp := container.New(layout1, countriesList, btnConnect)
@@ -46,15 +47,17 @@ func loadUI(peers map[string][]string, connectionHandler func(*widget.Button) *w
 	// return container.NewVSplit(countriesList, btnConnect)
 }
 
+const path = "/tmp/ygg.conf"
+
 func updatePeers(peers map[string][]string, countries []string) {
 	// create conf file if not exists
-	if _, err := os.Stat("/tmp/ygg.conf"); err != nil {
-		f, err := os.Create("/tmp/ygg.conf")
-		if err != nil {
-			fmt.Println(err)
-		}
-		f.Close()
-	}
+	// if _, err := os.Stat("/tmp/ygg.conf"); err != nil {
+	// 	f, err := os.Create("/tmp/ygg.conf")
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+	// 	f.Close()
+	// }
 
 	// Generate new configs
 	cmd := exec.Command("yggdrasil", "-genconf")
@@ -66,17 +69,18 @@ func updatePeers(peers map[string][]string, countries []string) {
 	configs := string(output)
 	configs = strings.Replace(configs, "Peers: []", "Peers: "+yggdrasil.ConcatPeers(peers, countries), 1)
 
-	// Save new configs
-	f, err := os.OpenFile("/tmp/ygg.conf", os.O_WRONLY, os.ModeAppend)
+	// Re-Write the file
+	if _, err := os.Stat(path); err == nil {
+		os.Remove(path)
+	}
+
+	f, err := os.Create(path)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error!", err)
 	}
 	defer f.Close()
 
-	_, err = io.WriteString(f, configs)
-	if err != nil {
-		fmt.Println("here", err)
-	}
+	fmt.Fprintln(f, configs)
 }
 
 func removeCountry(countries []string, country string) []string {
@@ -87,16 +91,30 @@ func removeCountry(countries []string, country string) []string {
 func main() {
 	peers := yggdrasil.GetPeers()
 	selectedCountries := []string{}
-	connectionHandler := func(btn *widget.Button) *widget.Button {
+	connectionHandler := func(btn *widget.Button, items []*widget.Check) *widget.Button {
 		var cmd *exec.Cmd
+
+		disableList := func() {
+			for _, item := range items {
+				item.Disable()
+			}
+		}
+
+		enableList := func() {
+			for _, item := range items {
+				item.Enable()
+			}
+		}
 
 		btn.OnTapped = func() {
 			if cmd != nil {
 				btn.SetText("Connect")
 				cmd.Process.Kill()
 				cmd = nil
+				enableList()
 			} else {
 				go func() {
+					disableList()
 					btn.SetText("Disconnect")
 					cmd = exec.Command("yggdrasil", "-useconffile", "/tmp/ygg.conf")
 					_, err := cmd.Output()

@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"os/exec"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -49,14 +46,14 @@ func loadUI(peers map[string][]string, countries []string, onSelectPeer func(boo
 }
 
 func main() {
+	// check if yggdrasil exists on system
+	yggdrasil.CheckYggdrasil()
+
+	// get all peers
 	peers := yggdrasil.GetPeers()
 
 	// Stop yggdrasil service if it's working
-	cmd := exec.Command("killall", "yggdrasil")
-	_, err := cmd.Output()
-	if err != nil {
-		fmt.Println(err)
-	}
+	yggdrasil.Kill()
 
 	// Load inital selected countries
 	countries := helpers.LoadCountries()

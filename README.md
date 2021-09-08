@@ -4,17 +4,22 @@ A desktop app for linux using fyne allows to easily work with yggdrasil.
 
 ## Download
 
-```
-$ wget https://raw.githubusercontent.com/MohamedElmdary/yggdrasil-connector/master/yggdrasil-connector.tar.gz
-```
+Consider download latest release from releases page
+[Here](https://github.com/MohamedElmdary/yggdrasil-connector/releases).
 
-## Run
+## Install
 
 1. Extract file
 2. Install
 
+```sh
+sudo make install
 ```
-$ sudo make install
+
+## Run
+
+```sh
+sudo yggdrasil-connector
 ```
 
 ## Notes

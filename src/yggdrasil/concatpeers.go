@@ -16,9 +16,4 @@ func ConcatPeers(peers map[string][]string, countries []string) string {
 	}
 
 	return "[\n" + result + "  ]"
-	// result := ""
-	// for _, peer := range peers {
-	// 	result += "    " + peer + "\n"
-	// }
-	// return "[\n" + result + "  ]"
 }

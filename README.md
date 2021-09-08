@@ -5,7 +5,7 @@ A desktop app for linux using fyne allows to easily work with yggdrasil.
 ## Download
 
 ```
-$ wget https://github.com/MohamedElmdary/yggdrasil-connector/blob/master/yggdrasil-connector.tar.gz
+$ wget https://raw.githubusercontent.com/MohamedElmdary/yggdrasil-connector/master/yggdrasil-connector.tar.gz
 ```
 
 ## Run

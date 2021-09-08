@@ -13,7 +13,7 @@ import (
 	"github.com/MohamedElmdary/yggdrasil-connector/src/yggdrasil"
 )
 
-func loadUI(peers map[string][]string, onSelectPeer func(bool, string)) fyne.CanvasObject {
+func loadUI(peers map[string][]string, countries []string, onSelectPeer func(bool, string)) fyne.CanvasObject {
 	items := []fyne.CanvasObject{}
 	tempItems := []*widget.Check{}
 
@@ -25,6 +25,11 @@ func loadUI(peers map[string][]string, onSelectPeer func(bool, string)) fyne.Can
 		checkbox := widget.NewCheck(country, func(checked bool) {
 			onSelectPeer(checked, c)
 		})
+
+		if helpers.FindIndex(countries, country) > -1 {
+			checkbox.Checked = true
+		}
+
 		items = append(items, checkbox)
 		tempItems = append(tempItems, checkbox)
 	}
@@ -47,18 +52,21 @@ func main() {
 	peers := yggdrasil.GetPeers()
 
 	// Stop yggdrasil service if it's working
-	cmd := exec.Command("systemctl", "stop", "yggdrasil")
+	cmd := exec.Command("killall", "yggdrasil")
 	_, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err)
 	}
 
+	// Load inital selected countries
+	countries := helpers.LoadCountries()
+
 	// Init conf file
-	yggdrasil.UpdatePeers(peers, []string{})
+	yggdrasil.UpdatePeers(peers, countries)
 
 	application := app.New()
 	window := application.NewWindow("Yggdrasil Connector")
 	window.Resize(fyne.NewSize(300, 600))
-	window.SetContent(loadUI(peers, yggdrasil.UpdatePeersHandler(peers)))
+	window.SetContent(loadUI(peers, countries, yggdrasil.UpdatePeersHandler(peers, countries)))
 	window.ShowAndRun()
 }

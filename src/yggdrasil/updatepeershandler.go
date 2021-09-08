@@ -2,8 +2,8 @@ package yggdrasil
 
 import "github.com/MohamedElmdary/yggdrasil-connector/src/helpers"
 
-func UpdatePeersHandler(peers map[string][]string) func(bool, string) {
-	selectedCountries := []string{}
+func UpdatePeersHandler(peers map[string][]string, initialCountries []string) func(bool, string) {
+	selectedCountries := initialCountries
 
 	return func(checked bool, country string) {
 		if checked {
@@ -12,6 +12,7 @@ func UpdatePeersHandler(peers map[string][]string) func(bool, string) {
 			selectedCountries = helpers.RemoveCountry(selectedCountries, country)
 		}
 
+		helpers.UpdateCountries(selectedCountries)
 		UpdatePeers(peers, selectedCountries)
 	}
 }

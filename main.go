@@ -1,13 +1,17 @@
 package main
 
 import (
+	"image/color"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/MohamedElmdary/yggdrasil-connector/src/helpers"
 	"github.com/MohamedElmdary/yggdrasil-connector/src/yggdrasil"
+	"github.com/atotto/clipboard"
 )
 
 func loadUI(peers map[string][]string, countries []string, onSelectPeer func(bool, string)) fyne.CanvasObject {
@@ -41,7 +45,15 @@ func loadUI(peers map[string][]string, countries []string, onSelectPeer func(boo
 	btnConnect := helpers.CreateConnectionBtn(tempItems)
 	btnConnect.Resize(fyne.NewSize(1, 100))
 	layout1 := layout.NewVBoxLayout()
-	contApp := container.New(layout1, countriesList, btnConnect)
+	contApp := container.New(
+		layout1,
+		countriesList,
+		canvas.NewText(yggdrasil.GetAddress(), color.White),
+		widget.NewButton("Copy ipv6", func() {
+			clipboard.WriteAll(yggdrasil.GetAddress())
+		}),
+		btnConnect,
+	)
 	return contApp
 }
 

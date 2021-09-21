@@ -24,4 +24,9 @@ sudo yggdrasil-connector
 
 ## Notes
 
-This app requires `root` user.
+1. This app requires `root` user.
+2. In order to copy ipv6 make sure to run the following command
+
+```
+sudo apt-get install xsel  xclip wl-clipboard
+```
